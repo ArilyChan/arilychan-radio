@@ -17,7 +17,7 @@ module.exports.init = (options) => {
         }
     }
 }
-module.exports.webView = (options, storage) => {
+module.exports.webView = (options, storage, http) => {
     return server(storage);
 }
 module.exports.apply = (ctx, options, storage) => {
