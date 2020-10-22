@@ -21,7 +21,7 @@ module.exports.webView = (options, storage, http) => {
     return server(storage);
 }
 module.exports.apply = (ctx, options, storage) => {
-    ctx.middleware((meta, next) => {
+    ctx.middleware(async (meta, next) => {
         try {
             const userId = meta.userId;
             const command = meta.message.trim().split(' ').filter(item => item !== '');
