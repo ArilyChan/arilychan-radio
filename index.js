@@ -18,7 +18,7 @@ module.exports.init = (option = {}) => {
             const arg = new Arg(msg);
             const beatmapInfo = await arg.getBeatmapInfo();
             playlist.set(beatmapInfo.sid, beatmapInfo)
-            setTimeout(() => emitter.emit('search-result', beatmapInfo), 0)
+            setTimeout(() => emitter.emit('search-result', beatmapInfo), 0) // give bot time to setup qq and name
             return beatmapInfo;
         },
         playlist,
@@ -34,6 +34,7 @@ module.exports.init = (option = {}) => {
                     return !shouldRemove
                 })
             .map(([sid, result]) => result)
+            .reverse()
         }
     }
 }
