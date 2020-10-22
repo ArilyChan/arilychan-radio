@@ -38,7 +38,11 @@ module.exports.apply = (ctx, options, storage) => {
                         id : userId,
                         nickname : meta.sender.nickname
                     };
-                    return meta.$send(`[CQ:at,qq=${userId}]\n点歌成功！`);
+                    let reply = `[CQ:at,qq=${userId}]\n`;
+                    if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听";
+                    else reply += "点歌成功！";
+                    reply += "\n" + options.web.host + options.web.path;
+                    return meta.$send(reply);
                 }
                 catch (ex) {
                     return meta.$send(`[CQ:at,qq=${userId}]\n` + ex);
