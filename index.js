@@ -35,14 +35,14 @@ module.exports.apply = (ctx, options, storage) => {
                     // TODO
                     let beatmapInfo = await storage.search(command[1]);
                     beatmapInfo.uploader = {
-                        id : userId,
-                        nickname : meta.sender.nickname
+                        id: userId,
+                        nickname: meta.sender.nickname
                     };
                     let reply = `[CQ:at,qq=${userId}]\n`;
                     reply += "搜索到曲目：" + beatmapInfo.artistU + " - " + beatmapInfo.titleU + "\n";
-                    if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听";
-                    else reply += "点歌成功！";
-                    reply += "\n" + options.web.host + options.web.path;
+                    if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听\n";
+                    reply += "点歌成功！歌曲将会在歌单保存 " + options.expire + " 天";
+                    reply += "\n电台地址：" + options.web.host + options.web.path;
                     return meta.$send(reply);
                 }
                 catch (ex) {
