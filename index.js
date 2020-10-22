@@ -6,7 +6,7 @@ const server = require("./lib/server/server");
 
 module.exports.name = 'arilychan-radio';
 module.exports.webPath = 'radio';
-module.exports.init = async (options) => {
+module.exports.init = (options) => {
     return {
         emitter: new EventEmitter(),
         async search(msg) {
@@ -18,7 +18,7 @@ module.exports.init = async (options) => {
     }
 }
 module.exports.webView = (options, storage, http) => {
-    return server(storage);
+    return server(storage, http);
 }
 module.exports.apply = (ctx, options, storage) => {
     ctx.middleware(async (meta, next) => {
