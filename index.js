@@ -33,6 +33,10 @@ module.exports.apply = (ctx, options, storage) => {
                 try {
                     // TODO
                     let beatmapInfo = await storage.search(command[1]);
+                    beatmapInfo.uploader = {
+                        id : userId,
+                        nickname : meta.sender.nickname
+                    };
                     return meta.$send(`[CQ:at,qq=${userId}]\n点歌成功！`);
                 }
                 catch (ex) {
