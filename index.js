@@ -39,6 +39,7 @@ module.exports.apply = (ctx, options, storage) => {
                         nickname : meta.sender.nickname
                     };
                     let reply = `[CQ:at,qq=${userId}]\n`;
+                    reply += "搜索到曲目：" + beatmapInfo.artistU + " - " + beatmapInfo.titleU + "\n";
                     if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听";
                     else reply += "点歌成功！";
                     reply += "\n" + options.web.host + options.web.path;
