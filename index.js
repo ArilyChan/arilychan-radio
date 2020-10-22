@@ -7,8 +7,9 @@ const server = require("./lib/server/server");
 module.exports.name = 'arilychan-radio';
 module.exports.webPath = 'radio';
 module.exports.init = (options) => {
+    const emitter = new EventEmitter()
     return {
-        emitter: new EventEmitter(),
+        emitter,
         async search(msg) {
             let arg = new Arg(msg);
             let beatmapInfo = await arg.getBeatmapInfo();
