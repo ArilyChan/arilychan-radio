@@ -5,22 +5,39 @@ const Arg = require("./lib/command/arg");
 const server = require("./lib/server/server");
 
 module.exports.name = 'arilychan-radio';
-module.exports.webPath = 'radio';
-module.exports.init = (options) => {
+module.exports.webPath = '/radio';
+module.exports.init = (option = {}) => {
+    const playlist = new Map()
     const emitter = new EventEmitter()
+    const removeAfterDays = (( option.expire || 7 ) + 1)
+    console.log(removeAfterDays)
+
     return {
         emitter,
         async search(msg) {
-            let arg = new Arg(msg);
-            let beatmapInfo = await arg.getBeatmapInfo();
-            emitter.emit('search-result', beatmapInfo);
+            const arg = new Arg(msg);
+            const beatmapInfo = await arg.getBeatmapInfo();
+            playlist.set(beatmapInfo.sid, beatmapInfo)
+            setTimeout(() => emitter.emit('search-result', beatmapInfo), 0)
             return beatmapInfo;
+        },
+        playlist,
+        filteredPlaylistArray(){
+            const now = new Date()
+            return Array.from(playlist)
+                .filter(([sid, song]) => {
+                    const duration = now - song.createdAt
+                    const durationDays = duration / 1000 / 60 / 60 / 24
+                    const shouldRemove = durationDays > removeAfterDays
+
+                    if (shouldRemove) playlist.delete(sid)
+                    return !shouldRemove
+                })
+            .map(([sid, result]) => result)
         }
     }
 }
-module.exports.webView = (options, storage, http) => {
-    return server(storage, http);
-}
+module.exports.webView = server
 module.exports.apply = (ctx, options, storage) => {
     ctx.middleware(async (meta, next) => {
         try {
