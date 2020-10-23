@@ -30,7 +30,7 @@ module.exports.init = (option = {}) => {
          * @param {Number} uuid 
          * @param {Number} qqId -1=可以删除任何人的歌曲，管理员限定
          */
-        async delete(uuid, { id: qqId = -1, name }) {
+        async delete(uuid, { id: qqId = -1, nickname }) {
             // let aim = Array.from(playlist).filter(([sid, song]) => {
             //     if (qqId === -1) return (song.uuid === uuid)
             //     else return (song.uuid === uuid && song.uploader.id === qqId)
@@ -45,7 +45,7 @@ module.exports.init = (option = {}) => {
             if (qqId !== -1 && song.uploader.id !== qqId) throw new Error('你不能删这条点播')
 
             playlist.delete(sid)
-            emitter.emit('remove-track', { uuid, uploader: { id: qqId, name } })
+            emitter.emit('remove-track', { uuid, uploader: { id: qqId, nickname } })
             return true
         },
         /**
