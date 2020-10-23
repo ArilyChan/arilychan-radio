@@ -10,7 +10,6 @@ module.exports.init = (option = {}) => {
     const playlist = new Map()
     const emitter = new EventEmitter()
     const removeAfterDays = (( option.expire || 7 ) + 1)
-    console.log(removeAfterDays)
 
     return {
         emitter,
