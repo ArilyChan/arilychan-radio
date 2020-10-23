@@ -51,7 +51,7 @@ module.exports.apply = (ctx, options, storage) => {
             if (act === '点歌') {
                 try {
                     // TODO
-                    let beatmapInfo = await storage.search(command[1]);
+                    let beatmapInfo = await storage.search(command.slice(1).join(' '));
                     beatmapInfo.uploader = {
                         id: userId,
                         nickname: meta.sender.nickname
