@@ -14,16 +14,14 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "precache-manifest.a9d22a58356cea1f051613790ae2a54c.js"
+  "precache-manifest.66faabe5af21f78d10439dfc9f989be4.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "arilychan-radio"});
 
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
+workbox.core.skipWaiting();
+
+workbox.core.clientsClaim();
 
 /**
  * The workboxSW.precacheAndRoute() method efficiently caches and responds to
