@@ -89,6 +89,7 @@ module.exports.apply = (ctx, options, storage) => {
                 case '点歌':
                 case 'radio.queue':
                 case 'radio.add':
+                case 'queue.add':
                     try {
                         let beatmapInfo = await storage.search(command.slice(1).join(' '));
                         beatmapInfo.uploader = {
@@ -98,7 +99,7 @@ module.exports.apply = (ctx, options, storage) => {
                         beatmapInfo.uuid = ++uuid;
                         let reply = `[CQ:at,qq=${userId}]\n`;
                         reply += "搜索到曲目：" + beatmapInfo.artistU + " - " + beatmapInfo.titleU + "\n";
-                        if (!beatmapInfo.radioFileName) reply += "小夜没给音频，只有试听\n";
+                        if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听\n";
                         reply += "点歌成功！UUID：" + beatmapInfo.uuid + "，歌曲将会保存 " + options.expire + " 天";
                         reply += "\n电台地址：" + options.web.host + options.web.path;
                         return meta.$send(reply);
@@ -121,6 +122,9 @@ module.exports.apply = (ctx, options, storage) => {
                 case 'radio.delete':
                 case 'radio.remove':
                 case 'radio.cancel':
+                case 'queue.delete':
+                case 'queue.remove':
+                case 'queue.cancel':
                     try {
                         const arg = command.slice(1).join(' ');
                         if (!arg) return meta.$send(`[CQ:at,qq=${userId}]\n请指定UUID`);
