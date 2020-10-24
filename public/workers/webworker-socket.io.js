@@ -1,3 +1,6 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
+
 importScripts('https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.js')
 
 socket = null
@@ -17,7 +20,7 @@ function on (eventName) {
   socket.on(eventName, listeners.get(eventName))
 }
 
-function off(eventName) {
+function off (eventName) {
   if (!listeners.has(eventName)) return
   socket.off(eventName, listeners.get(eventName))
   listeners.delete(eventName)
