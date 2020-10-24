@@ -80,7 +80,7 @@ module.exports.apply = (ctx, options, storage) => {
     ctx.middleware(async (meta, next) => {
         try {
             const userId = meta.userId;
-            const command = meta.message.trim().split(' ').filter(item => item !== '');
+            const command = meta.$parsed.trim().split(' ').filter(item => item !== '');
             if (command.length < 1) return next();
             if (command[0].substring(0, 1) !== '!' && command[0].substring(0, 1) !== '！') return next();
             if (command[0].length < 2) return next();
