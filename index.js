@@ -3,6 +3,7 @@
 const { EventEmitter } = require("events");
 const Arg = require("./lib/command/arg");
 const server = require("./lib/server/server");
+const utils = require("./lib/utils");
 
 module.exports.name = 'arilychan-radio';
 module.exports.webPath = '/radio';
@@ -80,9 +81,9 @@ module.exports.apply = (ctx, options, storage) => {
     ctx.middleware(async (meta, next) => {
         try {
             const userId = meta.userId;
-            const command = meta.$parsed.trim().split(' ').filter(item => item !== '');
-            // if (command.length < 1) return next();
-            // if (command[0].substring(0, 1) !== '!' && command[0].substring(0, 1) !== '！') return next();
+            const command = utils.unescapeSpecialChars(meta.message).trim().split(' ').filter(item => item !== '');
+            if (command.length < 1) return next();
+            if (command[0].substring(0, 1) !== '!' && command[0].substring(0, 1) !== '！') return next();
             if (command[0].length < 2) return next();
             const act = command[0].substring(1);
             switch (act) {
