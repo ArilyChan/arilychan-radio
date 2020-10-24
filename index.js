@@ -39,7 +39,7 @@ module.exports.init = (option = {}) => {
             // // aim.length should be 1
             // playlist.delete(aim.pop().sid)
 
-            const [sid, target] = Array.from(playlist).find(([sid, song]) => song.uuid == uuid)
+            const [sid, target] = Array.from(playlist).find(([sid, song]) => song.uuid == uuid) || [undefined, undefined]
 
             if (!target) throw new Error('找不到曲目')
             if (qqId !== -1 && song.uploader.id !== qqId) throw new Error('你不能删这条点播')
