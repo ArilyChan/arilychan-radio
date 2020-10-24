@@ -81,18 +81,19 @@ module.exports.apply = (ctx, options, storage) => {
     ctx.middleware(async (meta, next) => {
         try {
             const userId = meta.userId;
-            const command = utils.unescapeSpecialChars(meta.message).trim().split(' ').filter(item => item !== '');
+            const command = meta.message.trim().split(' ').filter(item => item !== '');
             if (command.length < 1) return next();
             if (command[0].substring(0, 1) !== '!' && command[0].substring(0, 1) !== '！') return next();
             if (command[0].length < 2) return next();
             const act = command[0].substring(1);
+            const argString = (command.length > 1) ? utils.unescapeSpecialChars(command.slice(1).join(' ')) : '';
             switch (act) {
                 case '点歌':
                 case 'radio.queue':
                 case 'radio.add':
                 case 'queue.add':
                     try {
-                        let beatmapInfo = await storage.search(command.slice(1).join(' '));
+                        let beatmapInfo = await storage.search(argString);
                         beatmapInfo.uploader = {
                             id: userId,
                             nickname: meta.sender.nickname
@@ -112,8 +113,7 @@ module.exports.apply = (ctx, options, storage) => {
                 case 'radio.broadcast':
                     try {
                         if (!options.isAdmin(meta)) return meta.$send(`[CQ:at,qq=${userId}]\n只有管理员才能发送广播消息`);
-                        const msg = command.slice(1).join(' ');
-                        await storage.broadcast(userId, msg);
+                        await storage.broadcast(userId, argString);
                         return meta.$send(`[CQ:at,qq=${userId}]\n已发送广播`);
                     }
                     catch (ex) {
@@ -127,9 +127,8 @@ module.exports.apply = (ctx, options, storage) => {
                 case 'queue.remove':
                 case 'queue.cancel':
                     try {
-                        const arg = command.slice(1).join(' ');
-                        if (!arg) return meta.$send(`[CQ:at,qq=${userId}]\n请指定UUID`);
-                        const uuid = parseInt(arg);
+                        if (!argString) return meta.$send(`[CQ:at,qq=${userId}]\n请指定UUID`);
+                        const uuid = parseInt(argString);
                         if (!uuid) return meta.$send(`[CQ:at,qq=${userId}]\nUUID应该是个正整数`);
                         if (options.isAdmin(meta)) await storage.delete(uuid, { id: -1, nickname: meta.sender.nickname });
                         else await storage.delete(uuid, { id: userId, nickname: meta.sender.nickname });
