@@ -43,7 +43,7 @@ module.exports.init = (option = {}) => {
             const [sid, target] = Array.from(playlist).find(([sid, song]) => song.uuid == uuid) || [undefined, undefined]
 
             if (!target) throw new Error('找不到曲目')
-            if (qqId !== -1 && song.uploader.id !== qqId) throw new Error('你不能删这条点播')
+            if (qqId !== -1 && target.uploader.id !== qqId) throw new Error('你不能删这条点播')
 
             playlist.delete(sid)
             emitter.emit('remove-track', { uuid, uploader: { id: qqId, nickname } })
