@@ -10,9 +10,16 @@ const rl = readline.createInterface({
 });
 rl.on("line", async (line) => {
     try {
-        let beatmapInfo = await new Arg(line).getBeatmapInfo();
-
-        console.log(beatmapInfo.fullMp3);
+        const command = line.trim().split(' ').filter(item => item !== '');
+        if (command.length < 1) return;
+        if (command[0].substring(0, 1) !== '!' && command[0].substring(0, 1) !== '！') return;
+        if (command[0].length < 2) return;
+        const act = command[0].substring(1);
+        if (act === "dg") {
+            let arg = command.slice(1).join(' ');
+            let beatmapInfo = await new Arg(arg).getBeatmapInfo();
+            console.log(beatmapInfo.fullMp3);
+        }
     }
     catch (ex) {
         console.log(ex);
