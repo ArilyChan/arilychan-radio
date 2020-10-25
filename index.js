@@ -29,7 +29,7 @@ module.exports.init = (option = {}) => {
         /**
          * 从playlist中删除指定歌曲
          * @param {Number} uuid 
-         * @param {Number} qqId -1=可以删除任何人的歌曲，管理员限定
+         * @param {Object} uploader -1=可以删除任何人的歌曲，管理员限定
          */
         async delete(uuid, { id: qqId = -1, nickname }) {
             // let aim = Array.from(playlist).filter(([sid, song]) => {
@@ -52,7 +52,7 @@ module.exports.init = (option = {}) => {
         /**
          * 广播
          * @param {Number|String} name qqId或其他东西
-         * @param {String} msg 
+         * @param {String} msg message to send
          */
         async broadcast(name, msg) {
             setTimeout(() => emitter.emit('broadcast-message', { name }, msg), 0)
@@ -104,10 +104,10 @@ module.exports.apply = (ctx, options, storage) => {
                         if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听\n";
                         reply += "点歌成功！UUID：" + beatmapInfo.uuid + "，歌曲将会保存 " + options.expire + " 天";
                         reply += "\n电台地址：" + options.web.host + options.web.path;
-                        return meta.$send(reply);
+                        return await meta.$send(reply);
                     }
                     catch (ex) {
-                        return meta.$send(`[CQ:at,qq=${userId}]\n` + ex);
+                        return meta.$send(`[CQ:at,qq=${userId}]\n` + ex)
                     }
                 case '广播':
                 case 'radio.broadcast':
