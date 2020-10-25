@@ -30,7 +30,9 @@ module.exports.init = (option = {}) => {
         /**
          * 从playlist中删除指定歌曲
          * @param {Number} setId 
-         * @param {Number} qqId -1=可以删除任何人的歌曲，管理员限定
+         * @param {Object} uploader 
+         * @param {Number} uploader.id -1=可以删除任何人的歌曲，管理员限定
+         * @param {String} uploader.nickname
          */
         async delete(setId, { id: qqId = -1, nickname }) {
 
@@ -39,7 +41,7 @@ module.exports.init = (option = {}) => {
             if (!target) throw new Error('找不到曲目或没有权限删除该曲目')
 
             // if (!target) throw new Error('找不到曲目')
-            // if (qqId !== -1 && song.uploader.id !== qqId) throw new Error('你不能删这条点播')
+            // if (qqId !== -1 && target.uploader.id !== qqId) throw new Error('你不能删这条点播')
 
             playlist.delete(uuid)
             emitter.emit('remove-track', { uuid, uploader: { id: qqId, nickname } })
@@ -48,7 +50,7 @@ module.exports.init = (option = {}) => {
         /**
          * 广播
          * @param {Number|String} name qqId或其他东西
-         * @param {String} msg 
+         * @param {String} msg message to send
          */
         async broadcast(name, msg) {
             setTimeout(() => emitter.emit('broadcast-message', { name }, msg), 0)
@@ -99,20 +101,20 @@ module.exports.apply = (ctx, options, storage) => {
                         if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听\n";
                         reply += "点歌成功！sid：" + beatmapInfo.sid + "，歌曲将会保存 " + options.expire + " 天";
                         reply += "\n电台地址：" + options.web.host + options.web.path;
-                        return meta.$send(reply);
+                        return await meta.$send(reply);
                     }
                     catch (ex) {
-                        return meta.$send(`[CQ:at,qq=${userId}]\n` + ex);
+                        return await meta.$send(`[CQ:at,qq=${userId}]\n` + ex);
                     }
                 case '广播':
                 case 'radio.broadcast':
                     try {
-                        if (!options.isAdmin(meta)) return meta.$send(`[CQ:at,qq=${userId}]\n只有管理员才能发送广播消息`);
+                        if (!options.isAdmin(meta)) return await meta.$send(`[CQ:at,qq=${userId}]\n只有管理员才能发送广播消息`);
                         await storage.broadcast(userId, argString);
-                        return meta.$send(`[CQ:at,qq=${userId}]\n已发送广播`);
+                        return await meta.$send(`[CQ:at,qq=${userId}]\n已发送广播`);
                     }
                     catch (ex) {
-                        return meta.$send(`[CQ:at,qq=${userId}]\n` + ex);
+                        return await meta.$send(`[CQ:at,qq=${userId}]\n` + ex);
                     }
                 case '删歌':
                 case 'radio.delete':
@@ -122,15 +124,15 @@ module.exports.apply = (ctx, options, storage) => {
                 case 'queue.remove':
                 case 'queue.cancel':
                     try {
-                        if (!argString) return meta.$send(`[CQ:at,qq=${userId}]\n请指定sid`);
+                        if (!argString) return await meta.$send(`[CQ:at,qq=${userId}]\n请指定sid`);
                         const sid = parseInt(argString);
-                        if (!sid) return meta.$send(`[CQ:at,qq=${userId}]\nsid应该是个正整数`);
+                        if (!sid) return await meta.$send(`[CQ:at,qq=${userId}]\nsid应该是个正整数`);
                         if (options.isAdmin(meta)) await storage.delete(sid, { id: -1, nickname: meta.sender.nickname });
                         else await storage.delete(sid, { id: userId, nickname: meta.sender.nickname });
-                        return meta.$send(`[CQ:at,qq=${userId}]\n删除成功！`);
+                        return await meta.$send(`[CQ:at,qq=${userId}]\n删除成功！`);
                     }
                     catch (ex) {
-                        return meta.$send(`[CQ:at,qq=${userId}]\n` + ex.message);
+                        return await meta.$send(`[CQ:at,qq=${userId}]\n` + ex.message);
                     }
                 default: return next();
 
