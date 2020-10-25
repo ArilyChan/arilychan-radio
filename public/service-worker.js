@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "precache-manifest.dc81e54df1f21623c681f44bc578c093.js"
+  "precache-manifest.c2572136133e85b285d5c7be089fe919.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "arilychan-radio"});
