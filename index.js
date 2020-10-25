@@ -4,7 +4,7 @@ const { EventEmitter } = require("events");
 const Arg = require("./lib/command/arg");
 const server = require("./lib/server/server");
 const utils = require("./lib/utils");
-const {v4: uuidv4} = require("uuid");
+const { v4: uuidv4 } = require("uuid");
 
 module.exports.name = 'arilychan-radio';
 module.exports.webPath = '/radio';
@@ -16,33 +16,32 @@ module.exports.init = (option = {}) => {
     return {
         emitter,
         /**
-         * 点歌
+         * 搜索歌曲
          * @param {String} msg “点歌”后面的参数
          * @returns {import("./lib/api/sayobot").BeatmapInfo} BeatmapInfo
          */
         async search(msg) {
             const arg = new Arg(msg);
             const beatmapInfo = await arg.getBeatmapInfo();
-            playlist.set(beatmapInfo.uuid, beatmapInfo)
-            setTimeout(() => emitter.emit('search-result', beatmapInfo), 0) // give bot time to setup qq and name
             return beatmapInfo;
         },
         /**
+         * 点歌
+         * @param {Object} song
+         */
+        async add(song) {
+            playlist.set(song.uuid, song)
+            setTimeout(() => emitter.emit('search-result', song), 0) // give bot time to setup qq and name
+            return true;
+        },
+        /**
          * 从playlist中删除指定歌曲
-         * @param {Number} setId 
+         * @param {String} uuid 
          * @param {Object} uploader 
-         * @param {Number} uploader.id -1=可以删除任何人的歌曲，管理员限定
+         * @param {Number} uploader.id 
          * @param {String} uploader.nickname
          */
-        async delete(setId, { id: qqId = -1, nickname }) {
-
-            const [uuid, target] = Array.from(playlist).find(([uuid, song]) => (song.sid == setId && ( qqId === -1 || qqId === song.uploader.id ))) || [undefined, undefined]
-
-            if (!target) throw new Error('找不到曲目或没有权限删除该曲目')
-
-            // if (!target) throw new Error('找不到曲目')
-            // if (qqId !== -1 && target.uploader.id !== qqId) throw new Error('你不能删这条点播')
-
+        async delete(uuid, { id: qqId, nickname }) {
             playlist.delete(uuid)
             emitter.emit('remove-track', { uuid, uploader: { id: qqId, nickname } })
             return true
@@ -59,15 +58,15 @@ module.exports.init = (option = {}) => {
         filteredPlaylistArray() {
             const now = new Date()
             return Array.from(playlist)
-                .filter(([sid, song]) => {
+                .filter(([uuid, song]) => {
                     const duration = now - song.createdAt
                     const durationDays = duration / 1000 / 60 / 60 / 24
                     const shouldRemove = durationDays > removeAfterDays
 
-                    if (shouldRemove) playlist.delete(sid)
+                    if (shouldRemove) playlist.delete(uuid)
                     return !shouldRemove
                 })
-                .map(([sid, result]) => result)
+                .map(([uuid, result]) => result)
                 .reverse()
         }
     }
@@ -99,6 +98,21 @@ module.exports.apply = (ctx, options, storage) => {
                         let reply = `[CQ:at,qq=${userId}]\n`;
                         reply += "搜索到曲目：" + beatmapInfo.artistU + " - " + beatmapInfo.titleU + "\n";
                         if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听\n";
+                        // 查重
+                        let p = Array.from(storage.playlist).filter(([uuid, song]) => (song.sid == beatmapInfo.sid));
+                        if (p.length > 0) {
+                            p = p.filter(([uuid, song]) => (userId === song.uploader.id));
+                            if (p.length > 0) {
+                                // 当点的歌之前点过，而且是同一个人点，则删除旧的再添加新的
+                                p.map(([uuid, song]) => {
+                                    await storage.delete(song.uuid, { id: userId, nickname: meta.sender.nickname })
+                                });
+                                reply += "这首歌之前已经被你点过了，";
+                            }
+                            // 当点的歌之前点过，但不是同一个人点，则直接添加，重复歌曲由客户端去filter
+                            reply += "这首歌之前已经被其他人点过了，";
+                        }
+                        await storage.add(beatmapInfo);
                         reply += "点歌成功！sid：" + beatmapInfo.sid + "，歌曲将会保存 " + options.expire + " 天";
                         reply += "\n电台地址：" + options.web.host + options.web.path;
                         return await meta.$send(reply);
@@ -127,8 +141,22 @@ module.exports.apply = (ctx, options, storage) => {
                         if (!argString) return await meta.$send(`[CQ:at,qq=${userId}]\n请指定sid`);
                         const sid = parseInt(argString);
                         if (!sid) return await meta.$send(`[CQ:at,qq=${userId}]\nsid应该是个正整数`);
-                        if (options.isAdmin(meta)) await storage.delete(sid, { id: -1, nickname: meta.sender.nickname });
-                        else await storage.delete(sid, { id: userId, nickname: meta.sender.nickname });
+                        let p = Array.from(storage.playlist).filter(([uuid, song]) => (song.sid == sid));
+                        if (p.length <= 0) throw new Error('播放列表中没有该曲目');
+                        if (options.isAdmin(meta)) {
+                            // 管理员直接删除所有该sid曲目
+                            p.map(([uuid, song]) => {
+                                await storage.delete(song.uuid, { id: userId, nickname: meta.sender.nickname })
+                            });
+                        }
+                        else {
+                            // 删除自己上传的所有该sid曲目
+                            p = p.filter(([uuid, song]) => (userId === song.uploader.id));
+                            if (p.length <= 0) throw new Error('非上传者无法删除该曲目');
+                            p.map(([uuid, song]) => {
+                                await storage.delete(song.uuid, { id: userId, nickname: meta.sender.nickname })
+                            });
+                        }
                         return await meta.$send(`[CQ:at,qq=${userId}]\n删除成功！`);
                     }
                     catch (ex) {
