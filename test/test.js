@@ -1,6 +1,7 @@
 "use strict";
 
 const Arg = require("../lib/command/arg");
+const {v4: uuidv4} = require("uuid");
 
 let myQQ = 1;
 const readline = require("readline");
@@ -18,7 +19,8 @@ rl.on("line", async (line) => {
         if (act === "dg") {
             let arg = command.slice(1).join(' ');
             let beatmapInfo = await new Arg(arg).getBeatmapInfo();
-            console.log(beatmapInfo.fullMp3);
+            console.log("sid:" + beatmapInfo.sid);
+            console.log("uuid: "+ uuidv4());
         }
     }
     catch (ex) {

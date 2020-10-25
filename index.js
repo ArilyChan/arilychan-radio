@@ -4,6 +4,7 @@ const { EventEmitter } = require("events");
 const Arg = require("./lib/command/arg");
 const server = require("./lib/server/server");
 const utils = require("./lib/utils");
+const {v4: uuidv4} = require("uuid");
 
 module.exports.name = 'arilychan-radio';
 module.exports.webPath = '/radio';
@@ -22,30 +23,25 @@ module.exports.init = (option = {}) => {
         async search(msg) {
             const arg = new Arg(msg);
             const beatmapInfo = await arg.getBeatmapInfo();
-            playlist.set(beatmapInfo.sid, beatmapInfo)
+            playlist.set(beatmapInfo.uuid, beatmapInfo)
             setTimeout(() => emitter.emit('search-result', beatmapInfo), 0) // give bot time to setup qq and name
             return beatmapInfo;
         },
         /**
          * 从playlist中删除指定歌曲
-         * @param {Number} uuid 
+         * @param {Number} setId 
          * @param {Number} qqId -1=可以删除任何人的歌曲，管理员限定
          */
-        async delete(uuid, { id: qqId = -1, nickname }) {
-            // let aim = Array.from(playlist).filter(([sid, song]) => {
-            //     if (qqId === -1) return (song.uuid === uuid)
-            //     else return (song.uuid === uuid && song.uploader.id === qqId)
-            // });
-            // if (aim.length <= 0) throw "找不到该曲目"
-            // // aim.length should be 1
-            // playlist.delete(aim.pop().sid)
+        async delete(setId, { id: qqId = -1, nickname }) {
 
-            const [sid, target] = Array.from(playlist).find(([sid, song]) => song.uuid == uuid) || [undefined, undefined]
+            const [uuid, target] = Array.from(playlist).find(([uuid, song]) => (song.sid == setId && ( qqId === -1 || qqId === song.uploader.id ))) || [undefined, undefined]
 
-            if (!target) throw new Error('找不到曲目')
-            if (qqId !== -1 && song.uploader.id !== qqId) throw new Error('你不能删这条点播')
+            if (!target) throw new Error('找不到曲目或没有权限删除该曲目')
 
-            playlist.delete(sid)
+            // if (!target) throw new Error('找不到曲目')
+            // if (qqId !== -1 && song.uploader.id !== qqId) throw new Error('你不能删这条点播')
+
+            playlist.delete(uuid)
             emitter.emit('remove-track', { uuid, uploader: { id: qqId, nickname } })
             return true
         },
@@ -76,7 +72,6 @@ module.exports.init = (option = {}) => {
 }
 module.exports.webView = server
 
-let uuid = 0;
 module.exports.apply = (ctx, options, storage) => {
     ctx.middleware(async (meta, next) => {
         try {
@@ -98,11 +93,11 @@ module.exports.apply = (ctx, options, storage) => {
                             id: userId,
                             nickname: meta.sender.nickname
                         };
-                        beatmapInfo.uuid = ++uuid;
+                        beatmapInfo.uuid = uuidv4();
                         let reply = `[CQ:at,qq=${userId}]\n`;
                         reply += "搜索到曲目：" + beatmapInfo.artistU + " - " + beatmapInfo.titleU + "\n";
                         if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听\n";
-                        reply += "点歌成功！UUID：" + beatmapInfo.uuid + "，歌曲将会保存 " + options.expire + " 天";
+                        reply += "点歌成功！sid：" + beatmapInfo.sid + "，歌曲将会保存 " + options.expire + " 天";
                         reply += "\n电台地址：" + options.web.host + options.web.path;
                         return meta.$send(reply);
                     }
@@ -127,11 +122,11 @@ module.exports.apply = (ctx, options, storage) => {
                 case 'queue.remove':
                 case 'queue.cancel':
                     try {
-                        if (!argString) return meta.$send(`[CQ:at,qq=${userId}]\n请指定UUID`);
-                        const uuid = parseInt(argString);
-                        if (!uuid) return meta.$send(`[CQ:at,qq=${userId}]\nUUID应该是个正整数`);
-                        if (options.isAdmin(meta)) await storage.delete(uuid, { id: -1, nickname: meta.sender.nickname });
-                        else await storage.delete(uuid, { id: userId, nickname: meta.sender.nickname });
+                        if (!argString) return meta.$send(`[CQ:at,qq=${userId}]\n请指定sid`);
+                        const sid = parseInt(argString);
+                        if (!sid) return meta.$send(`[CQ:at,qq=${userId}]\nsid应该是个正整数`);
+                        if (options.isAdmin(meta)) await storage.delete(sid, { id: -1, nickname: meta.sender.nickname });
+                        else await storage.delete(sid, { id: userId, nickname: meta.sender.nickname });
                         return meta.$send(`[CQ:at,qq=${userId}]\n删除成功！`);
                     }
                     catch (ex) {
