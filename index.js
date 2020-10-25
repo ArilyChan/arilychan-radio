@@ -107,17 +107,17 @@ module.exports.apply = (ctx, options, storage) => {
                         return await meta.$send(reply);
                     }
                     catch (ex) {
-                        return meta.$send(`[CQ:at,qq=${userId}]\n` + ex)
+                        return await meta.$send(`[CQ:at,qq=${userId}]\n` + ex);
                     }
                 case '广播':
                 case 'radio.broadcast':
                     try {
-                        if (!options.isAdmin(meta)) return meta.$send(`[CQ:at,qq=${userId}]\n只有管理员才能发送广播消息`);
+                        if (!options.isAdmin(meta)) return await meta.$send(`[CQ:at,qq=${userId}]\n只有管理员才能发送广播消息`);
                         await storage.broadcast(userId, argString);
-                        return meta.$send(`[CQ:at,qq=${userId}]\n已发送广播`);
+                        return await meta.$send(`[CQ:at,qq=${userId}]\n已发送广播`);
                     }
                     catch (ex) {
-                        return meta.$send(`[CQ:at,qq=${userId}]\n` + ex);
+                        return await meta.$send(`[CQ:at,qq=${userId}]\n` + ex);
                     }
                 case '删歌':
                 case 'radio.delete':
@@ -127,15 +127,15 @@ module.exports.apply = (ctx, options, storage) => {
                 case 'queue.remove':
                 case 'queue.cancel':
                     try {
-                        if (!argString) return meta.$send(`[CQ:at,qq=${userId}]\n请指定UUID`);
+                        if (!argString) return await meta.$send(`[CQ:at,qq=${userId}]\n请指定UUID`);
                         const uuid = parseInt(argString);
-                        if (!uuid) return meta.$send(`[CQ:at,qq=${userId}]\nUUID应该是个正整数`);
+                        if (!uuid) return await meta.$send(`[CQ:at,qq=${userId}]\nUUID应该是个正整数`);
                         if (options.isAdmin(meta)) await storage.delete(uuid, { id: -1, nickname: meta.sender.nickname });
                         else await storage.delete(uuid, { id: userId, nickname: meta.sender.nickname });
-                        return meta.$send(`[CQ:at,qq=${userId}]\n删除成功！`);
+                        return await meta.$send(`[CQ:at,qq=${userId}]\n删除成功！`);
                     }
                     catch (ex) {
-                        return meta.$send(`[CQ:at,qq=${userId}]\n` + ex.message);
+                        return await meta.$send(`[CQ:at,qq=${userId}]\n` + ex.message);
                     }
                 default: return next();
 
