@@ -25,6 +25,20 @@ module.exports.init = (option = {}) => {
             const beatmapInfo = await arg.getBeatmapInfo();
             return beatmapInfo;
         },
+
+        /**
+         * 检查歌曲是否在指定时间长度内
+         * @param {import("./lib/api/sayobot").BeatmapInfo} beatmapInfo 
+         * @param {Number} limit 秒数
+         * @returns {Boolean} true为在limit内，option.durationLimit未定义则始终为true
+         */
+        withinDurationLimit(beatmapInfo, limit = option.durationLimit) {
+            if (limit) {
+                return (beatmapInfo.duration <= limit);
+            }
+            else return true;
+        },
+
         /**
          * 点歌
          * @param {Object} song
@@ -97,6 +111,8 @@ module.exports.apply = (ctx, options, storage) => {
                         beatmapInfo.uuid = uuidv4();
                         let reply = `[CQ:at,qq=${userId}]\n`;
                         reply += "搜索到曲目：" + beatmapInfo.artistU + " - " + beatmapInfo.titleU + "\n";
+                        // 如果超出时长，则拒绝添加
+                        if (!storage.withinDurationLimit(beatmapInfo)) return await meta.$send(reply + "这首歌太长了，请选择短一些的曲目");
                         if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听\n";
                         // 查重
                         let p = Array.from(storage.playlist).filter(([uuid, song]) => (song.sid == beatmapInfo.sid));
