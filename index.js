@@ -92,7 +92,7 @@ module.exports.init = (option = defaultOptions) => {
 }
 module.exports.webView = (option = defaultOptions, storage, http) => server(option, storage, http)
 
-module.exports.apply = (ctx, option = defaultOptions, storage) => {
+module.exports.apply = (ctx, options = defaultOptions, storage) => {
     ctx.middleware(async (meta, next) => {
         try {
             const userId = meta.userId;
