@@ -6,9 +6,14 @@ const server = require("./lib/server/server");
 const utils = require("./lib/utils");
 const { v4: uuidv4 } = require("uuid");
 
+const defaultOptions = {
+    duration: 60 * 10 + 1,
+    expre: 7
+}
+
 module.exports.name = 'arilychan-radio';
 module.exports.webPath = '/radio';
-module.exports.init = (option = {}) => {
+module.exports.init = (option = defaultOptions) => {
     const playlist = new Map()
     const emitter = new EventEmitter()
     const removeAfterDays = ((option.expire || 7) + 1)
@@ -85,9 +90,9 @@ module.exports.init = (option = {}) => {
         }
     }
 }
-module.exports.webView = server
+module.exports.webView = (option = defaultOptions, storage, http) => server(option, storage, http)
 
-module.exports.apply = (ctx, options, storage) => {
+module.exports.apply = (ctx, option = defaultOptions, storage) => {
     ctx.middleware(async (meta, next) => {
         try {
             const userId = meta.userId;
