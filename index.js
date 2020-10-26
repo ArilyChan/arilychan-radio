@@ -120,7 +120,7 @@ module.exports.apply = (ctx, options = defaultOptions, storage) => {
                         if (!storage.withinDurationLimit(beatmapInfo)) return await meta.$send(reply + "这首歌太长了，请选择短一些的曲目");
                         if (!beatmapInfo.audioFileName) reply += "小夜没给音频，只有试听\n";
                         // 查重
-                        let p = Array.from(storage.playlist).filter(async ([uuid, song]) => (song.sid == beatmapInfo.sid));
+                        let p = Array.from(storage.playlist).filter(([uuid, song]) => (song.sid == beatmapInfo.sid));
                         if (p.length > 0) {
                             p = p.filter(([uuid, song]) => (userId === song.uploader.id));
                             if (p.length > 0) {
