@@ -126,8 +126,8 @@ module.exports.apply = (ctx, options = defaultOptions, storage) => {
                             if (p.length > 0) {
                                 // 当点的歌之前点过，而且是同一个人点，则删除旧的再添加新的
                                 // @arily 建议一小时之内点过的拒绝再次点歌。一小时以上的直接插入就可以。历史会按照sid去重
-                                await Promise.all(p.map(async ([uuid, song]) => {
-                                    await storage.delete(song.uuid, { id: userId, nickname: meta.sender.nickname })
+                                await Promise.all(p.map(([uuid, song]) => {
+                                    storage.delete(song.uuid, { id: userId, nickname: meta.sender.nickname })
                                 }))
                                 reply += "这首歌之前已经被你点过了，";
                             }
@@ -168,17 +168,17 @@ module.exports.apply = (ctx, options = defaultOptions, storage) => {
                         if (p.length <= 0) throw new Error('播放列表中没有该曲目');
                         if (options.isAdmin(meta)) {
                             // 管理员直接删除所有该sid曲目
-                            p.map(([uuid, song]) => {
-                                await storage.delete(song.uuid, { id: userId, nickname: meta.sender.nickname })
-                            });
+                            await Promise.all(p.map( ([uuid, song]) => {
+                                storage.delete(song.uuid, { id: userId, nickname: meta.sender.nickname })
+                            }))
                         }
                         else {
                             // 删除自己上传的所有该sid曲目
                             p = p.filter(([uuid, song]) => (userId === song.uploader.id));
                             if (p.length <= 0) throw new Error('非上传者无法删除该曲目');
-                            p.map(([uuid, song]) => {
-                                await storage.delete(song.uuid, { id: userId, nickname: meta.sender.nickname })
-                            });
+                            await Promise.all(p.map(([uuid, song]) => {
+                                storage.delete(song.uuid, { id: userId, nickname: meta.sender.nickname })
+                            }))
                         }
                         return await meta.$send(`[CQ:at,qq=${userId}]\n删除成功！`);
                     }
