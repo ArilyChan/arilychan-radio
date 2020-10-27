@@ -1,7 +1,7 @@
 "use strict";
 
-const { EventEmitter } = require("events");
 const Arg = require("./lib/command/arg");
+const api = require("./lib/server/api");
 const server = require("./lib/server/server");
 const utils = require("./lib/utils");
 const { v4: uuidv4 } = require("uuid");
@@ -13,83 +13,7 @@ const defaultOptions = {
 
 module.exports.name = 'arilychan-radio';
 module.exports.webPath = '/radio';
-module.exports.init = (option = defaultOptions) => {
-    const playlist = new Map()
-    const emitter = new EventEmitter()
-    const removeAfterDays = ((option.expire || 7) + 1)
-
-    return {
-        emitter,
-        /**
-         * 搜索歌曲
-         * @param {String} msg “点歌”后面的参数
-         * @returns {import("./lib/api/sayobot").BeatmapInfo} BeatmapInfo
-         */
-        async search(msg) {
-            const arg = new Arg(msg);
-            const beatmapInfo = await arg.getBeatmapInfo();
-            return beatmapInfo;
-        },
-
-        /**
-         * 检查歌曲是否在指定时间长度内
-         * @param {import("./lib/api/sayobot").BeatmapInfo} beatmapInfo 
-         * @param {Number} limit 秒数
-         * @returns {Boolean} true为在limit内，option.durationLimit未定义则始终为true
-         */
-        withinDurationLimit(beatmapInfo, limit = option.durationLimit) {
-            if (limit) {
-                return (beatmapInfo.duration <= limit);
-            }
-            else return true;
-        },
-
-        /**
-         * 点歌
-         * @param {Object} song
-         */
-        async add(song) {
-            playlist.set(song.uuid, song)
-            setTimeout(() => emitter.emit('search-result', song), 0) // give bot time to setup qq and name
-            return true;
-        },
-        /**
-         * 从playlist中删除指定歌曲
-         * @param {String} uuid 
-         * @param {Object} uploader 
-         * @param {Number} uploader.id 
-         * @param {String} uploader.nickname
-         */
-        async delete(uuid, { id: qqId, nickname }) {
-            playlist.delete(uuid)
-            emitter.emit('remove-track', { uuid, uploader: { id: qqId, nickname } })
-            return true
-        },
-        /**
-         * 广播
-         * @param {Number|String} name qqId或其他东西
-         * @param {String} msg message to send
-         */
-        async broadcast(name, msg) {
-            setTimeout(() => emitter.emit('broadcast-message', { name }, msg), 0)
-        },
-        playlist,
-        filteredPlaylistArray() {
-            const now = new Date()
-            return Array.from(playlist)
-                .filter(([uuid, song]) => {
-                    const duration = now - song.createdAt
-                    const durationDays = duration / 1000 / 60 / 60 / 24
-                    const shouldRemove = durationDays > removeAfterDays
-
-                    if (shouldRemove) playlist.delete(uuid)
-                    return !shouldRemove
-                })
-                .map(([uuid, result]) => result)
-                .reverse()
-        }
-    }
-}
+module.exports.init = (option = defaultOptions) => api(option)
 module.exports.webView = (option = defaultOptions, storage, http) => server(option, storage, http)
 
 module.exports.apply = (ctx, options = defaultOptions, storage) => {
