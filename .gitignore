@@ -342,3 +342,4 @@ healthchecksdb
 
 # this
 database.db
+.DS_Store
