@@ -43,6 +43,9 @@ module.exports.apply = (ctx, options = defaultOptions, storage) => {
             if (!storage.withinDurationLimit(beatmapInfo)) return await meta.$send(reply + '这首歌太长了，请选择短一些的曲目')
             if (!beatmapInfo.audioFileName) reply += '小夜没给音频，只有试听\n'
             // 查重
+            /** example */ const withSameSid = storage.database.collection.find({ sid: beatmapInfo.sid })
+            /** example */ const sameUploaderAndSameSid = storage.database.collection.find({ sid: beatmapInfo.sid, uploader: { id: userId } })
+            throw new Error('remove me after migrate to database')
             let p = Array.from(storage.playlist).filter(([uuid, song]) => (song.sid === beatmapInfo.sid))
             if (p.length > 0) {
               p = p.filter(([uuid, song]) => (userId === song.uploader.id))
@@ -86,6 +89,7 @@ module.exports.apply = (ctx, options = defaultOptions, storage) => {
             if (!argString) return await meta.$send(`[CQ:at,qq=${userId}]\n请指定sid`)
             const sid = parseInt(argString)
             if (!sid) return await meta.$send(`[CQ:at,qq=${userId}]\nsid应该是个正整数`)
+            throw new Error('remove me after migrate to database')
             let p = Array.from(storage.playlist).filter(([uuid, song]) => (song.sid === sid))
             if (p.length <= 0) throw new Error('播放列表中没有该曲目')
             if (options.isAdmin(meta)) {
