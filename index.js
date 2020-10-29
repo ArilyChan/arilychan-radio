@@ -52,12 +52,12 @@ module.exports.apply = (ctx, options = defaultOptions, storage) => {
                             { match: { sid: beatmapInfo.sid } }
                         ])
                         */
-                        // if (p.length > 0) {
+                        // if (p.count() > 0) {
                         const p = await database.collection.aggregate([
                             ...aggeregations.newerThan(oneHourBefore),
                             { match: { sid: beatmapInfo.sid, uploader: { id: userId } } }
                         ])
-                        if (p.length > 0) {
+                        if (p.count() > 0) {
                             // 当点的歌之前点过，而且是同一个人点，则删除旧的再添加新的
                             // @arily 建议一小时之内点过的拒绝再次点歌。一小时以上的直接插入就可以。历史会按照sid去重
                             throw new Error('这首歌之前已经被你点过了')
@@ -102,7 +102,7 @@ module.exports.apply = (ctx, options = defaultOptions, storage) => {
                             { match: { sid: beatmapInfo.sid } }
                         ])
 
-                        if (p.length <= 0) throw new Error('播放列表中没有该曲目')
+                        if (p.count() <= 0) throw new Error('播放列表中没有该曲目')
                         if (options.isAdmin(meta)) {
                             // 管理员直接删除所有该sid曲目
                             await Promise.all(p.map(([uuid, song]) => {
@@ -114,7 +114,7 @@ module.exports.apply = (ctx, options = defaultOptions, storage) => {
                                 ...aggeregations.newerThan(expiredDate),
                                 { match: { sid: beatmapInfo.sid }, uploader: { id: userId } }
                             ])
-                            if (p.length <= 0) throw new Error('非上传者无法删除该曲目')
+                            if (p.count() <= 0) throw new Error('非上传者无法删除该曲目')
                             await Promise.all(p.map(([uuid, song]) => {
                                 storage.delete(song, { id: userId, nickname: meta.sender.nickname })
                             }))
