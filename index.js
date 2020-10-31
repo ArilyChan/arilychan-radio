@@ -52,7 +52,7 @@ module.exports.apply = (ctx, options, storage) => {
             const p = await storage.database.collection.aggregate([
               ...aggeregations.newerThan(oneHourBefore),
               { $match: { sid: beatmapInfo.sid, uploader: { id: userId } } }
-            ]).get()
+            ]).toArray()
             if (p.length) {
               // 当点的歌之前点过，而且是同一个人点，则删除旧的再添加新的
               // @arily 建议一小时之内点过的拒绝再次点歌。一小时以上的直接插入就可以。历史会按照sid去重
@@ -96,7 +96,7 @@ module.exports.apply = (ctx, options, storage) => {
             let p = await storage.database.collection.aggregate([
               ...aggeregations.newerThan(expiredDate),
               { $match: { sid } }
-            ]).get()
+            ]).toArray()
 
             if (!p.length) throw new Error('播放列表中没有该曲目')
             if (options.isAdmin(meta)) {
