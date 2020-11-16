@@ -109,8 +109,8 @@ module.exports.apply = (ctx, options, storage) => {
               p = await storage.database.collection.aggregate([
                 ...aggeregations.newerThan(expiredDate),
                 { match: { sid }, uploader: { id: userId } }
-              ])
-              if (p.count() <= 0) throw new Error('非上传者无法删除该曲目')
+              ]).toArray()
+              if (p.length <= 0) throw new Error('非上传者无法删除该曲目')
               await Promise.all(p.map((song) => {
                 storage.delete(song, { id: userId, nickname: meta.sender.nickname })
               }))
